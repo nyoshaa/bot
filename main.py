@@ -20,10 +20,11 @@
 import logging  # библиотека логирования (журналирование)
 import asyncio  # библиотека для асинхронного программирования
 from aiogram import Bot, Dispatcher, types
-from config import TOKEN
-from handlers import register_message_handler
+from config import TOKEN, CHECK_YADISK_INTERVAL
+from handlers import register_message_handler, check_yadisk
 from handlers import commands_for_bot
 from db import async_create_table
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 # асинхронный вызов функции - конкурентный вызов с ожиданием события для продолжения процесса выполнения
@@ -40,10 +41,15 @@ async def main():
     # функция для вызова хендлеров из пакета handlers
     register_message_handler(dp)
 
+    # настройка sheduler`a
+    # https://botfather.dev/blog/zapusk-funkczij-v-bote-po-tajmeru
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(check_yadisk, "interval", seconds=CHECK_YADISK_INTERVAL, args=(bot, ))
+    scheduler.start()
+
     # передача списка команд боту
     await bot.set_my_commands(commands=commands_for_bot)
     await dp.start_polling(bot)
-
 
 # запуск бота через long_polling
 if __name__ == "__main__":

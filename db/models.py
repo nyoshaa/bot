@@ -3,12 +3,13 @@
 
 __all__ = [
     'User',
+    'Folder',
     'Base',
 ]
 
 import datetime
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Column, Integer, String, DATE
+from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy import Column, Integer, String, DATE, ForeignKey
 
 
 # Декларативная модель базы данных
@@ -18,12 +19,28 @@ class Base(DeclarativeBase):
 
 
 class User(Base):
-    """модель пользователя tg для регистрации"""
+    """модель пользователя tg для регистрации и авторизации в яндекс диске (если преподаватель)"""
 
     __tablename__ = "user_table"
 
-    user_id = Column(Integer, nullable=False, unique=True, primary_key=True)
+    id = Column(Integer, nullable=False, unique=True, primary_key=True, autoincrement=True)
 
-    username = Column(String, unique=False, nullable=True)  # Вместо String можно использовать VARCHAR()
+    tg_id = Column(Integer, nullable=False, unique=True)
 
-    reg_date = Column(DATE, default=datetime.datetime.now())
+    tg_username = Column(String, nullable=False, unique=True)
+
+    teacher_id = Column(Integer, ForeignKey("user_table.id"), nullable=True)
+
+    yandex_api_token = Column(String, nullable=True, unique=True)
+
+
+class Folder(Base):
+    """модель папки с яндекс диска"""
+
+    __tablename__ = "folder_table"
+
+    folder_id = Column(Integer, nullable=False, unique=True, primary_key=True, autoincrement=True)
+
+    user_tg_id = Column(Integer, ForeignKey('user_table.tg_id'))
+
+    folder_path = Column(String, unique=True, nullable=False)
